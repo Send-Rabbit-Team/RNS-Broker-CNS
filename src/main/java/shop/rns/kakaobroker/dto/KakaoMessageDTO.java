@@ -25,7 +25,7 @@ public class KakaoMessageDTO {
 
     private String image;
 
-    private String subject;
+    private String title;
 
     private String subtitle;
 
