@@ -33,8 +33,11 @@ public class KakaoMessageDTO {
 
     private String description;
 
-    // Button
-    private List<ButtonDTO> buttonDTOList;
+    private String buttonTitle;
+
+    private String buttonUrl;
+
+    private ButtonType buttonType;
 
     private MessageStatus messageStatus;
 
