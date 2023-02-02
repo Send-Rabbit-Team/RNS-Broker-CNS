@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
-public class ReceiveMessageDTO {
-    private KakaoMessageDTO kakaoMessageDTO;
-    private MessageResultDTO messageResultDTO;
+public class ReceiveMessageDto {
+    private KakaoMessageDto kakaoMessageDto;
+    private KakaoMessageResultDto kakaoMessageResultDto;
 }
