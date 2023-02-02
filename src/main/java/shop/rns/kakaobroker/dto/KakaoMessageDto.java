@@ -1,29 +1,20 @@
 package shop.rns.kakaobroker.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import shop.rns.kakaobroker.config.status.MessageStatus;
 import shop.rns.kakaobroker.config.type.ButtonType;
-
-import java.util.List;
 
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
-public class KakaoMessageDTO {
-    private long messageId;
-
+@Setter
+public class KakaoMessageDto {
     private String from;
 
     @JsonIgnore
     private String to;
-
-
-    private String image;
 
     private String title;
 
@@ -33,11 +24,7 @@ public class KakaoMessageDTO {
 
     private String description;
 
-    private String buttonTitle;
-
-    private String buttonUrl;
-
-    private ButtonType buttonType;
+    private String image;
 
     private MessageStatus messageStatus;
 
@@ -47,7 +34,9 @@ public class KakaoMessageDTO {
     @JsonIgnore
     private String scheduleCode;
 
+    private String buttonTitle;
 
+    private String buttonUrl;
 
-
+    private ButtonType buttonType;
 }
