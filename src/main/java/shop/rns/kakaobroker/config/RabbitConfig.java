@@ -27,7 +27,7 @@ public class RabbitConfig {
 
     // Rabbit Template
     @Bean
-    RabbitTemplate rabbitTemplate(ConnectionFactory connectionFactory) {
+    public RabbitTemplate rabbitTemplate(ConnectionFactory connectionFactory) {
         RabbitTemplate rabbitTemplate = new RabbitTemplate(connectionFactory);
         rabbitTemplate.setMessageConverter(jsonMessageConverter());
         return rabbitTemplate;
@@ -43,10 +43,7 @@ public class RabbitConfig {
     public DirectExchange kakaoReceiveExchange(){ return new DirectExchange(RECEIVE_EXCHANGE_NAME); }
 
     @Bean
-    public DirectExchange dlxKakaoExchange(){ return new DirectExchange(DLX_EXCHANGE_NAME); }
-
-    @Bean
-    public DirectExchange DeadKakaoExchange(){ return new DirectExchange(DEAD_EXCHANGE_NAME); }
+    public DirectExchange kakaoDlxExchange(){ return new DirectExchange(DLX_EXCHANGE_NAME); }
 
     // Queue
     // work queue
@@ -86,16 +83,16 @@ public class RabbitConfig {
 
     // receive exchange + receive queue + receive routing key
     @Bean
-    public Binding bindingKakaoReceiveKE(DirectExchange kakaoReceiveExchange, Queue kakaoReceiveKEQueue){
-        return BindingBuilder.bind(kakaoReceiveKEQueue)
+    public Binding bindingKakaoReceiveCNS(DirectExchange kakaoReceiveExchange, Queue kakaoReceiveCNSQueue){
+        return BindingBuilder.bind(kakaoReceiveCNSQueue)
                 .to(kakaoReceiveExchange)
                 .with(CNS_RECEIVE_ROUTING_KEY);
     }
 
     // dlx exchange + dlx queue + dlx routing key
     @Bean
-    public Binding bindingKakaoDlxKE(DirectExchange kakaoDlxExchange, Queue kakaoWaitKEQueue){
-        return BindingBuilder.bind(kakaoWaitKEQueue)
+    public Binding bindingKakaoDlxCNS(DirectExchange kakaoDlxExchange, Queue kakaoWaitCNSQueue){
+        return BindingBuilder.bind(kakaoWaitCNSQueue)
                 .to(kakaoDlxExchange)
                 .with(CNS_WAIT_ROUTING_KEY);
     }

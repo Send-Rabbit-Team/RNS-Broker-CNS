@@ -9,9 +9,10 @@ import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Component;
 import shop.rns.kakaobroker.config.status.MessageStatus;
-import shop.rns.kakaobroker.dto.KakaoMessageDTO;
-import shop.rns.kakaobroker.dto.MessageResultDTO;
-import shop.rns.kakaobroker.dto.ReceiveMessageDTO;
+import shop.rns.kakaobroker.dlx.DlxProcessingErrorHandler;
+import shop.rns.kakaobroker.dto.KakaoMessageDto;
+import shop.rns.kakaobroker.dto.KakaoMessageResultDto;
+import shop.rns.kakaobroker.dto.ReceiveMessageDto;
 
 import java.io.IOException;
 
@@ -21,42 +22,45 @@ import static shop.rns.kakaobroker.utils.rabbitmq.RabbitUtil.*;
 @Component
 @RequiredArgsConstructor
 public class MessageConsumer {
-
+    private final DlxProcessingErrorHandler dlxProcessingErrorHandler;
     private final RabbitTemplate rabbitTemplate;
     private final ObjectMapper objectMapper;
 
-    @RabbitListener(queues="q.kakao.ke.work",concurrency = "3", ackMode = "MANUAL")
+    @RabbitListener(queues="q.kakao.cns.work",concurrency = "3", ackMode = "MANUAL")
     public void receiveMessage(Message message, Channel channel){
         try{
             // ReceiveMessageDTO 변환
-            ReceiveMessageDTO receiveMessageDTO = objectMapper.readValue(new String(message.getBody()),ReceiveMessageDTO.class);
+            ReceiveMessageDto receiveMessageDto = objectMapper.readValue(new String(message.getBody()), ReceiveMessageDto.class);
 
             // KakaoMessageDTO 추출
-            KakaoMessageDTO kakaoMessageDTO = receiveMessageDTO.getKakaoMessageDTO();
-            System.out.println("메시지 내용 = " + kakaoMessageDTO.getContent());
+            KakaoMessageDto kakaoMessageDto = receiveMessageDto.getKakaoMessageDto();
+            System.out.println("메시지 내용 = " + kakaoMessageDto.getContent());
 
             // MessageResultDTO 추출
-            MessageResultDTO messageResultDTO = receiveMessageDTO.getMessageResultDTO();
+            KakaoMessageResultDto kakaoMessageResultDto = receiveMessageDto.getKakaoMessageResultDto();
 
-            sendResponseToSendServer(messageResultDTO);
 
             // 수신 완료 ack 발송
             channel.basicAck(message.getMessageProperties().getDeliveryTag(), false);
 
+            sendResponseToSendServer(kakaoMessageResultDto);
+
         } catch (IOException e){
             // DLX 에러 핸들링
             log.warn("Error processing message:" + message.getBody().toString() + ":" + e.getMessage());
+            dlxProcessingErrorHandler.handleErrorProcessingMessage(message, channel);
+
         }
     }
 
-    public void sendResponseToSendServer(MessageResultDTO messageResultDTO){
-        changeMessageStatusSuccess(messageResultDTO);
+    public void sendResponseToSendServer(KakaoMessageResultDto kakaoMessageResultDto){
+        changeMessageStatusSuccess(kakaoMessageResultDto);
 
-        rabbitTemplate.convertAndSend(RECEIVE_EXCHANGE_NAME,CNS_RECEIVE_ROUTING_KEY,messageResultDTO);
+        rabbitTemplate.convertAndSend(RECEIVE_EXCHANGE_NAME,CNS_RECEIVE_ROUTING_KEY, kakaoMessageResultDto);
     }
 
-    public MessageResultDTO changeMessageStatusSuccess(MessageResultDTO messageResultDTO){
-        messageResultDTO.setMessageStatus(MessageStatus.SUCCESS);
-        return messageResultDTO;
+    public KakaoMessageResultDto changeMessageStatusSuccess(KakaoMessageResultDto kakaoMessageResultDto){
+        kakaoMessageResultDto.setMessageStatus(MessageStatus.SUCCESS);
+        return kakaoMessageResultDto;
     }
 }
