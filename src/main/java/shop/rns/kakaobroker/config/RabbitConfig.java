@@ -36,22 +36,23 @@ public class RabbitConfig {
     // Exchange
     @Bean
     public DirectExchange kakaoWorkExchange() {
-        return new DirectExchange(KAKAO_EXCHANGE_NAME);
+        return new DirectExchange(WORK_EXCHANGE_NAME);
     }
 
     @Bean
     public DirectExchange kakaoReceiveExchange(){ return new DirectExchange(RECEIVE_EXCHANGE_NAME); }
 
     @Bean
-    public DirectExchange kakaoDlxExchange(){ return new DirectExchange(DLX_EXCHANGE_NAME); }
+    public DirectExchange kakaoWaitExchange(){ return new DirectExchange(WAIT_EXCHANGE_NAME); }
 
     // Queue
     // work queue
     @Bean
     public Queue kakaoWorkCNSQueue(){
         Map<String, Object> args = new HashMap<>();
-        args.put("x-dead-letter-exchange",DLX_EXCHANGE_NAME);
-        args.put("x-dead-letter-routing-key",CNS_WAIT_ROUTING_KEY);
+        args.put("x-dead-letter-exchange",SENDER_EXCHANGE_NAME);
+        args.put("x-dead-letter-routing-key",CNS_SENDER_ROUTING_KEY);
+        args.put("x-message-ttl", WORK_TTL);
         return new Queue(CNS_WORK_QUEUE_NAME,true, false, false, args);
     }
 
@@ -66,7 +67,7 @@ public class RabbitConfig {
     public Queue kakaoWaitCNSQueue(){
         Map<String,Object> args = new HashMap<>();
         args.put("x-message-ttl", WAIT_TTL);
-        args.put("x-dead-letter-exchange",KAKAO_EXCHANGE_NAME);
+        args.put("x-dead-letter-exchange",WORK_EXCHANGE_NAME);
         args.put("x-dead-letter-routing-key",CNS_WORK_ROUTING_KEY);
 
         return new Queue(CNS_WAIT_QUEUE_NAME,true, false, false, args);
@@ -75,7 +76,7 @@ public class RabbitConfig {
     // binding
     // work exchange + work queue + work routing key
     @Bean
-    public Binding bindingKakaoCNS(DirectExchange kakaoWorkExchange, Queue kakaoWorkCNSQueue){
+    public Binding bindingKakaoWorkCNS(DirectExchange kakaoWorkExchange, Queue kakaoWorkCNSQueue){
         return BindingBuilder.bind(kakaoWorkCNSQueue)
                 .to(kakaoWorkExchange)
                 .with(CNS_WORK_ROUTING_KEY);
@@ -91,9 +92,9 @@ public class RabbitConfig {
 
     // dlx exchange + dlx queue + dlx routing key
     @Bean
-    public Binding bindingKakaoDlxCNS(DirectExchange kakaoDlxExchange, Queue kakaoWaitCNSQueue){
+    public Binding bindingKakaoWaitCNS(DirectExchange kakaoWaitExchange, Queue kakaoWaitCNSQueue){
         return BindingBuilder.bind(kakaoWaitCNSQueue)
-                .to(kakaoDlxExchange)
+                .to(kakaoWaitExchange)
                 .with(CNS_WAIT_ROUTING_KEY);
     }
 }
