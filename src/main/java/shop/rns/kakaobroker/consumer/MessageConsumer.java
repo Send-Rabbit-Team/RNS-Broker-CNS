@@ -9,7 +9,6 @@ import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Component;
 import shop.rns.kakaobroker.config.status.MessageStatus;
-import shop.rns.kakaobroker.dlx.DlxProcessingErrorHandler;
 import shop.rns.kakaobroker.dto.KakaoMessageDto;
 import shop.rns.kakaobroker.dto.KakaoMessageResultDto;
 import shop.rns.kakaobroker.dto.ReceiveMessageDto;
@@ -22,12 +21,11 @@ import static shop.rns.kakaobroker.utils.rabbitmq.RabbitUtil.*;
 @Component
 @RequiredArgsConstructor
 public class MessageConsumer {
-    private final DlxProcessingErrorHandler dlxProcessingErrorHandler;
     private final RabbitTemplate rabbitTemplate;
     private final ObjectMapper objectMapper;
 
     @RabbitListener(queues="q.kakao.cns.work",concurrency = "3", ackMode = "MANUAL")
-    public void receiveMessage(Message message, Channel channel){
+    public void receiveMessage(Message message, Channel channel) throws IOException {
         try{
             // ReceiveMessageDTO 변환
             ReceiveMessageDto receiveMessageDto = objectMapper.readValue(new String(message.getBody()), ReceiveMessageDto.class);
@@ -48,7 +46,7 @@ public class MessageConsumer {
         } catch (IOException e){
             // DLX 에러 핸들링
             log.warn("Error processing message:" + message.getBody().toString() + ":" + e.getMessage());
-            dlxProcessingErrorHandler.handleErrorProcessingMessage(message, channel);
+            channel.basicReject(message.getMessageProperties().getDeliveryTag(), false);
 
         }
     }
