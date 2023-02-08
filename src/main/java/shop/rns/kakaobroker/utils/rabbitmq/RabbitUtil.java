@@ -3,9 +3,9 @@ package shop.rns.kakaobroker.utils.rabbitmq;
 public class RabbitUtil {
 
     // Exchange
-    public static final String KAKAO_EXCHANGE_NAME = "dx.kakao.work";
-    public static final String DLX_EXCHANGE_NAME = "dx.kakao.wait";
-    public static final String DEAD_EXCHANGE_NAME = "dx.kakao.dead";
+    public static final String WORK_EXCHANGE_NAME = "dx.kakao.work";
+    public static final String WAIT_EXCHANGE_NAME = "dx.kakao.wait";
+    public static final String SENDER_EXCHANGE_NAME = "dx.kakao.sender";
     public static final String RECEIVE_EXCHANGE_NAME = "dx.kakao.receive";
 
     // Queue
@@ -14,13 +14,13 @@ public class RabbitUtil {
     public static final String CNS_RECEIVE_QUEUE_NAME = "q.kakao.cns.receive";
 
     // Routing Key
-    public static final String CNS_WORK_ROUTING_KEY = "kakao.send.cns";
+    public static final String CNS_WORK_ROUTING_KEY = "kakao.work.cns";
     public static final String CNS_WAIT_ROUTING_KEY = "kakao.wait.cns";
     public static final String CNS_RECEIVE_ROUTING_KEY = "kakao.receive.cns";
+    public static final String CNS_SENDER_ROUTING_KEY = "kakao.sender.cns";
 
-    // DLX Routing key
-    public static final String KE_WAIT_ROUTING_KEY = "kakao.wait.ke";
 
     // TTL
-    public static final int WAIT_TTL = 3000;
+    public static final int WORK_TTL = 10 * 1000;
+    public static final int WAIT_TTL = 5 * 1000;
 }
