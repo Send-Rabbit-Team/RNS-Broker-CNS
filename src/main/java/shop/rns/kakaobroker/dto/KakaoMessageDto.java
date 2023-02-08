@@ -28,15 +28,13 @@ public class KakaoMessageDto {
 
     private MessageStatus messageStatus;
 
-    @JsonIgnore
-    private String reserveTime;
-
-    @JsonIgnore
-    private String scheduleCode;
-
     private String buttonTitle;
 
     private String buttonUrl;
 
     private ButtonType buttonType;
+
+    private String cronExpression;
+
+    private String cronText;
 }
