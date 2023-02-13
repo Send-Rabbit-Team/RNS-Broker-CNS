@@ -10,10 +10,16 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @Getter
 @Setter
-public class MessageResultDTO {
+public class KakaoMessageResultDto {
+    private String rMessageResultId;
+
     private long messageId;
+
     private long brokerId;
+
     private long contactId;
+
     private MessageStatus messageStatus;
+
     private LocalDateTime createdAt;
 }

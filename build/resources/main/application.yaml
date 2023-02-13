@@ -44,7 +44,7 @@ secret:
 
 ## serverName ##
 server:
-  port: 8081
+  port: 8085
   url: localhost
   ## https
   tomcat:
