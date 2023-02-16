@@ -21,5 +21,7 @@ public class KakaoMessageResultDto {
 
     private MessageStatus messageStatus;
 
+    private long retryCount;
+
     private LocalDateTime createdAt;
 }

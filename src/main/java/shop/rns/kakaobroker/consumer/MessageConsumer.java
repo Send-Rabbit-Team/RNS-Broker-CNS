@@ -9,6 +9,7 @@ import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Component;
 import shop.rns.kakaobroker.config.status.MessageStatus;
+import shop.rns.kakaobroker.dlx.RabbitmqHeader;
 import shop.rns.kakaobroker.dto.KakaoMessageDto;
 import shop.rns.kakaobroker.dto.KakaoMessageResultDto;
 import shop.rns.kakaobroker.dto.ReceiveMessageDto;
@@ -30,30 +31,31 @@ public class MessageConsumer {
             // ReceiveMessageDTO 변환
             ReceiveMessageDto receiveMessageDto = objectMapper.readValue(new String(message.getBody()), ReceiveMessageDto.class);
 
-            // KakaoMessageDTO 추출
             KakaoMessageDto kakaoMessageDto = receiveMessageDto.getKakaoMessageDto();
             System.out.println("메시지 내용 = " + kakaoMessageDto.getContent());
 
-            // MessageResultDTO 추출
             KakaoMessageResultDto kakaoMessageResultDto = receiveMessageDto.getKakaoMessageResultDto();
 
-            // 수신 완료 ack 발송
+            RabbitmqHeader rabbitmqHeader = new RabbitmqHeader(message.getMessageProperties().getHeaders());
+            long retryCount = rabbitmqHeader.getFailedRetryCount();
+
             channel.basicAck(message.getMessageProperties().getDeliveryTag(), false);
+            sendResponseToSendServer(kakaoMessageResultDto, retryCount);
 
-            sendResponseToSendServer(kakaoMessageResultDto);
-
+//            channel.basicReject(message.getMessageProperties().getDeliveryTag(), false);
         } catch (IOException e){
             // DLX 에러 핸들링
             log.warn("Error processing message:" + message.getBody().toString() + ":" + e.getMessage());
             channel.basicReject(message.getMessageProperties().getDeliveryTag(), false);
-
         }
     }
 
-    public void sendResponseToSendServer(KakaoMessageResultDto kakaoMessageResultDto){
+    public void sendResponseToSendServer(KakaoMessageResultDto kakaoMessageResultDto, long retryCount){
         changeMessageStatusSuccess(kakaoMessageResultDto);
+        kakaoMessageResultDto.setRetryCount(retryCount);
 
-        rabbitTemplate.convertAndSend(RECEIVE_EXCHANGE_NAME,CNS_RECEIVE_ROUTING_KEY, kakaoMessageResultDto);
+        rabbitTemplate.convertAndSend(RECEIVE_EXCHANGE_NAME, CNS_RECEIVE_ROUTING_KEY, kakaoMessageResultDto);
+        log.info("response to sender server: {}", kakaoMessageResultDto.getMessageId());
     }
 
     public KakaoMessageResultDto changeMessageStatusSuccess(KakaoMessageResultDto kakaoMessageResultDto){
